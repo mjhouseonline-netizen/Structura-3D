@@ -1,0 +1,7 @@
+{
+  "name": "Structura 3D - Direct Intuitive 3D Modelling Studio",
+  "description": "A browser-based 3D design and modelling studio featuring direct face/edge drawing, Push/Pull extrusion, intelligent snapping, parametric architectural tools, and Gemini AI design assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
