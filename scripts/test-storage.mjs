@@ -1,0 +1,51 @@
+import { build } from 'esbuild';
+import assert from 'node:assert/strict';
+import { mkdtemp, rm } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+const folder = await mkdtemp(path.join(os.tmpdir(), 'structura-test-'));
+const events = new Map();
+const storage = new Map();
+globalThis.window = { addEventListener: (name, fn) => events.set(name, fn) };
+globalThis.localStorage = { setItem: (k, v) => storage.set(k, v), getItem: k => storage.get(k) };
+try {
+  const outfile = path.join(folder, 'store.mjs');
+  await build({ entryPoints: ['src/state/useModelStore.ts'], outfile, bundle: true, platform: 'node', format: 'esm', define: { 'import.meta.env.VITE_OFFLINE_DESKTOP': '"true"' } });
+  const { modelActions, serializeProject, getState, setState } = await import(pathToFileURL(outfile));
+  modelActions.loadProject({ project: { name: 'Empty saved design' }, objects: [] });
+  assert.equal(getState().objects.length, 0);
+  assert.equal(getState().pages.length, 1);
+  const firstPage = getState().activePageId;
+  modelActions.createPage('Sheet', '2d-layout', 'blank');
+  const snapshot = serializeProject();
+  assert.equal(snapshot.pages.length, 2);
+  modelActions.loadProject(JSON.parse(JSON.stringify(snapshot)));
+  assert.equal(getState().pages.length, 2);
+  assert.equal(getState().activePageId, snapshot.activePageId);
+  modelActions.switchPage(firstPage);
+  assert.equal(getState().objects.length, 0);
+  setState({ project: { ...getState().project, name: 'Renamed offline' } });
+  events.get('beforeunload')();
+  const saved = JSON.parse(storage.get('structura_3d_project'));
+  assert.equal(saved.project.name, 'Renamed offline');
+  assert.equal(saved.pages.length, 2);
+  assert.equal(saved.activePageId, firstPage);
+  const marker = { id: 'edited-object', name: 'Latest edit', type: 'box' };
+  setState({ objects: [marker] });
+  modelActions.duplicatePage(firstPage);
+  assert.equal(getState().objects[0].id, marker.id);
+  const duplicateId = getState().activePageId;
+  modelActions.deletePage(firstPage);
+  assert.equal(getState().activePageId, duplicateId);
+  assert.equal(getState().objects[0].id, marker.id);
+  globalThis.fetch = () => { throw new Error('Offline AI must never make a request'); };
+  await modelActions.executeAiPrompt('Create a room');
+  assert.match(getState().aiError, /unavailable/);
+  assert.equal(getState().isAiLoading, false);
+  console.log('PASS: empty designs, legacy import, multi-page round trip, page switching, rename/close saving, duplicate/delete preserving edits, offline AI guard.');
+} finally {
+  events.get('beforeunload')?.();
+  await rm(folder, { recursive: true, force: true });
+}

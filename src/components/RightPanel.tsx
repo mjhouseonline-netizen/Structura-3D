@@ -22,6 +22,7 @@ import {
   X,
 } from 'lucide-react';
 import { useModelStore, modelActions } from '../state/useModelStore';
+import { isOfflineDesktop } from '../offline';
 import { PRESET_MATERIALS } from '../engine/materials';
 import { ObjectTag } from '../types/model';
 import { formatMeasurement } from '../utils/units';
@@ -672,11 +673,12 @@ export const RightPanel: React.FC = () => {
             <div className="bg-gradient-to-br from-sky-950/60 to-indigo-950/60 p-3 rounded-xl border border-sky-800/40 space-y-1.5">
               <div className="flex items-center gap-1.5 font-semibold text-sky-300">
                 <Sparkles size={16} />
-                <span>Gemini AI Design Assistant</span>
+                <span>{isOfflineDesktop ? 'Offline edition' : 'Gemini AI Design Assistant'}</span>
               </div>
               <p className="text-[11px] text-slate-400 leading-relaxed">
-                Describe whole rooms, architectural adjustments, or furniture layouts in natural language.
-                Gemini translates your brief into validated 3D modelling commands.
+                {isOfflineDesktop
+                  ? 'The Gemini assistant requires internet and is unavailable here. Create rooms with the modelling tools and add furniture from the object library. Your designs save locally.'
+                  : 'Describe rooms or furniture layouts in natural language. Gemini translates your brief into 3D modelling commands.'}
               </p>
             </div>
 
@@ -684,6 +686,7 @@ export const RightPanel: React.FC = () => {
             <form onSubmit={handleAiSubmit} className="space-y-2">
               <div className="relative">
                 <textarea
+                  disabled={isOfflineDesktop}
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
                   placeholder="e.g. 'Create a 5m x 6m bedroom with a queen bed against the back wall, two windows, and light oak floor'..."
@@ -694,7 +697,7 @@ export const RightPanel: React.FC = () => {
 
               <button
                 type="submit"
-                disabled={isAiLoading || !aiPrompt.trim()}
+                disabled={isOfflineDesktop || isAiLoading || !aiPrompt.trim()}
                 className="w-full py-2 px-3 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-semibold text-xs flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-md shadow-sky-500/20"
               >
                 {isAiLoading ? (
@@ -705,7 +708,7 @@ export const RightPanel: React.FC = () => {
                 ) : (
                   <>
                     <Send size={14} />
-                    <span>Execute Design Command</span>
+                    <span>{isOfflineDesktop ? 'Cloud AI unavailable offline' : 'Execute Design Command'}</span>
                   </>
                 )}
               </button>

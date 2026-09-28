@@ -1,0 +1,12 @@
+{
+  "appId": "net.mjhouseonline.structura3d",
+  "productName": "Structura 3D",
+  "directories": { "output": "release" },
+  "files": ["dist/**/*", "desktop/main.cjs", "package.json"],
+  "asar": true,
+  "npmRebuild": false,
+  "win": { "target": ["nsis", "portable"], "signAndEditExecutable": false },
+  "nsis": { "oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true, "artifactName": "Structura-3D-${version}-Windows-${arch}-Setup.${ext}" },
+  "portable": { "artifactName": "Structura-3D-${version}-Windows-${arch}-Portable.${ext}" },
+  "mac": { "target": ["dmg", "zip"], "category": "public.app-category.graphics-design", "identity": "-", "hardenedRuntime": false, "artifactName": "Structura-3D-${version}-Mac-${arch}.${ext}" }
+}

@@ -23,7 +23,8 @@ import {
   Keyboard,
   Home,
 } from 'lucide-react';
-import { useModelStore, modelActions } from '../state/useModelStore';
+import { useModelStore, modelActions, serializeProject } from '../state/useModelStore';
+import { isOfflineDesktop } from '../offline';
 
 export const TopBar: React.FC = () => {
   const {
@@ -48,12 +49,7 @@ export const TopBar: React.FC = () => {
 
   const handleExportJson = () => {
     const dataStr = JSON.stringify(
-      {
-        project: useModelStore.getState().project,
-        objects: useModelStore.getState().objects,
-        savedScenes: useModelStore.getState().savedScenes,
-        tags: useModelStore.getState().tags,
-      },
+      serializeProject(),
       null,
       2
     );
@@ -109,6 +105,7 @@ export const TopBar: React.FC = () => {
           </div>
           <span className="font-semibold text-white tracking-tight hidden sm:inline">
             Structura<span className="text-sky-400">3D</span>
+            {isOfflineDesktop && <span className="ml-2 text-xs text-emerald-400">Offline</span>}
           </span>
         </div>
 

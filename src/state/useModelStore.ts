@@ -14,6 +14,7 @@ import {
   DesignPage,
 } from '../types/model';
 import { PRESET_MATERIALS } from '../engine/materials';
+import { isOfflineDesktop } from '../offline';
 
 export const DEFAULT_TAGS: TagInfo[] = [
   { id: 'structure', name: 'Structure', color: '#64748b', visible: true, locked: false },
@@ -331,12 +332,16 @@ export function getState(): ModelState {
 }
 
 export function setState(updater: Partial<ModelState> | ((prev: ModelState) => Partial<ModelState>)) {
+  const previous = currentState;
   if (typeof updater === 'function') {
     currentState = { ...currentState, ...updater(currentState) };
   } else {
     currentState = { ...currentState, ...updater };
   }
   emitChange();
+  if (['project', 'objects', 'pages', 'activePageId', 'savedScenes', 'tags'].some(
+    key => previous[key as keyof ModelState] !== currentState[key as keyof ModelState]
+  )) debounceAutosave();
 }
 
 /**
@@ -370,23 +375,35 @@ export function pushHistory(description: string, newObjects?: ModelObject[]) {
 }
 
 let autosaveTimeout: any = null;
+export function serializeProject() {
+  return {
+    version: 2,
+    project: currentState.project,
+    objects: currentState.objects,
+    savedScenes: currentState.savedScenes,
+    tags: currentState.tags,
+    activePageId: currentState.activePageId,
+    pages: currentState.pages.map(page => page.id === currentState.activePageId
+      ? { ...page, objects: currentState.objects } : page),
+  };
+}
+
+function saveNow() {
+  try {
+    localStorage.setItem('structura_3d_project', JSON.stringify(serializeProject()));
+    setState({ saveStatus: 'saved' });
+  } catch (error) {
+    console.warn('Autosave failed:', error);
+    setState({ saveStatus: 'unsaved' });
+  }
+}
+window.addEventListener('beforeunload', () => {
+  if (autosaveTimeout) { clearTimeout(autosaveTimeout); saveNow(); }
+});
 function debounceAutosave() {
   if (autosaveTimeout) clearTimeout(autosaveTimeout);
   setState({ saveStatus: 'saving' });
-  autosaveTimeout = setTimeout(() => {
-    try {
-      localStorage.setItem('structura_3d_project', JSON.stringify({
-        project: currentState.project,
-        objects: currentState.objects,
-        savedScenes: currentState.savedScenes,
-        tags: currentState.tags,
-      }));
-      setState({ saveStatus: 'saved' });
-    } catch (e) {
-      console.warn('Autosave failed:', e);
-      setState({ saveStatus: 'unsaved' });
-    }
-  }, 1000);
+  autosaveTimeout = setTimeout(saveNow, 1000);
 }
 
 // Global actions
@@ -709,6 +726,10 @@ export const modelActions = {
    * AI Structured Command Executor
    */
   async executeAiPrompt(prompt: string) {
+    if (isOfflineDesktop) {
+      setState({ aiError: 'The Gemini assistant requires internet and is unavailable in the offline edition. Use the modelling tools and object library.', isAiLoading: false });
+      return;
+    }
     setState({ isAiLoading: true, aiError: null });
 
     try {
@@ -1224,7 +1245,7 @@ export const modelActions = {
 
   deletePage(pageId: string) {
     if (currentState.pages.length <= 1) return; // Must keep at least 1 page
-    const remaining = currentState.pages.filter((p) => p.id !== pageId);
+    const remaining = serializeProject().pages.filter((p) => p.id !== pageId);
     const nextActiveId =
       currentState.activePageId === pageId ? remaining[0].id : currentState.activePageId;
     const targetPage = remaining.find((p) => p.id === nextActiveId) || remaining[0];
@@ -1239,7 +1260,8 @@ export const modelActions = {
   },
 
   duplicatePage(pageId: string) {
-    const pageToDup = currentState.pages.find((p) => p.id === pageId);
+    const syncedPages = serializeProject().pages;
+    const pageToDup = syncedPages.find((p) => p.id === pageId);
     if (!pageToDup) return;
 
     const copy: DesignPage = {
@@ -1251,7 +1273,7 @@ export const modelActions = {
     };
 
     setState((prev) => ({
-      pages: [...prev.pages, copy],
+      pages: [...syncedPages, copy],
       activePageId: copy.id,
       objects: JSON.parse(JSON.stringify(copy.objects)),
       selectedObjectIds: [],
@@ -1262,7 +1284,12 @@ export const modelActions = {
   loadProject(jsonData: any) {
     try {
       if (jsonData && Array.isArray(jsonData.objects)) {
+        const pages: DesignPage[] = Array.isArray(jsonData.pages) && jsonData.pages.length
+          ? jsonData.pages : [{ id: 'imported-page', title: 'Design Space', type: '3d-space', objects: jsonData.objects, savedScenes: jsonData.savedScenes || [], createdAt: new Date().toISOString() }];
+        const activePageId = pages.some(p => p.id === jsonData.activePageId) ? jsonData.activePageId : pages[0].id;
         setState({
+          pages,
+          activePageId,
           project: jsonData.project || currentState.project,
           objects: jsonData.objects,
           savedScenes: jsonData.savedScenes || currentState.savedScenes,
@@ -1504,12 +1531,7 @@ export const modelActions = {
         try {
           localStorage.setItem(
             'structura_3d_project',
-            JSON.stringify({
-              project: currentState.project,
-              objects: currentState.objects,
-              savedScenes: currentState.savedScenes,
-              tags: currentState.tags,
-            })
+            JSON.stringify(serializeProject())
           );
           setState({ saveStatus: 'saved' });
         } catch (e) {
