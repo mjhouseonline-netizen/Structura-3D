@@ -28,6 +28,12 @@ jobs:
       - run: ${{ matrix.command }}
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Verify Mac signatures and desktop startup
+        if: runner.os == 'macOS'
+        run: |
+          codesign --verify --deep --strict 'release/mac/Structura 3D.app'
+          codesign --verify --deep --strict 'release/mac-arm64/Structura 3D.app'
+          npm run test:desktop
       - uses: actions/upload-artifact@v4
         with:
           name: Structura-3D-${{ matrix.artifact }}

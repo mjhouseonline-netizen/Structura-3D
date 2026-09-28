@@ -24,7 +24,8 @@ file named `Structura-Portable.txt` beside the app. Run the app from there; the
 inside the read-only DMG. A downloaded Mac app may be translocated by macOS;
 verify that `Structura Data` appears on the USB drive before relying on autosave.
 
-These builds are unsigned and the Mac build is not notarized. Windows or macOS
+Windows builds are unsigned; Mac builds use ad-hoc signatures without an Apple
+Developer certificate and are not notarized. Windows or macOS
 may require an explicit first-launch approval. Managed devices may prohibit
 unsigned apps. Use signed/notarized builds for broad public distribution.
 
