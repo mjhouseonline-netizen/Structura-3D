@@ -30,7 +30,7 @@ export default function App() {
       const saved = localStorage.getItem('structura_3d_project');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && Array.isArray(parsed.objects) && parsed.objects.length > 0) {
+        if (parsed && Array.isArray(parsed.objects)) {
           modelActions.loadProject(parsed);
         }
       }
