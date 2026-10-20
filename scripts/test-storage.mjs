@@ -45,7 +45,15 @@ try {
   await modelActions.executeAiPrompt('Create a room');
   assert.match(getState().aiError, /unavailable/);
   assert.equal(getState().isAiLoading, false);
-  console.log('PASS: empty designs, legacy import, multi-page round trip, page switching, rename/close saving, duplicate/delete preserving edits, offline AI guard.');
+  const movable = { id: 'movable-box', name: 'Movable box', type: 'box', tag: 'shapes', position: { x: 0, y: 0, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, scale: { x: 1, y: 1, z: 1 }, dimensions: { width: 1000, height: 1000, depth: 1000 }, materialId: 'wood-natural-oak', visible: true, locked: false };
+  modelActions.loadProject({ project: { name: 'Interaction test' }, objects: [movable] });
+  modelActions.selectObject('movable-box');
+  assert.deepEqual(getState().selectedObjectIds, ['movable-box']);
+  modelActions.updateObject('movable-box', { position: { x: 500, y: 0, z: 700 } }, 'Moved object');
+  assert.deepEqual(getState().objects[0].position, { x: 500, y: 0, z: 700 });
+  modelActions.pushPull('movable-box', 300);
+  assert.equal(getState().objects[0].dimensions.height, 1300);
+  console.log('PASS: empty designs, legacy import, multi-page round trip, page switching, rename/close saving, duplicate/delete preserving edits, selection/move/push-pull state, offline AI guard.');
 } finally {
   events.get('beforeunload')?.();
   await rm(folder, { recursive: true, force: true });
