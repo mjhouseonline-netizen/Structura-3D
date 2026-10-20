@@ -171,10 +171,7 @@ export const PageTabBar: React.FC = () => {
           </button>
 
           {isNewPageMenuOpen && (
-            <div
-              className="absolute left-0 mt-1 w-64 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 text-xs space-y-1"
-              onMouseLeave={() => setIsNewPageMenuOpen(false)}
-            >
+            <div className="absolute left-0 mt-1 w-64 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 text-xs space-y-1">
               <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 Create New Page / Sheet
               </div>

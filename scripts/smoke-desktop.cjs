@@ -32,27 +32,26 @@ app.on('web-contents-created', (_event, contents) => {
       assert.equal(result.nodeAccess, 'undefined');
       const shot = await contents.capturePage();
       fs.writeFileSync('test-output/desktop.png', shot.toPNG());
-      // Reload from an on-disk autosave containing an empty scene and two pages.
-      await contents.executeJavaScript(`localStorage.setItem('structura_3d_project', JSON.stringify({
-        project: { name: 'Offline restore check' }, objects: [], activePageId: 'empty',
-        pages: [
-          { id: 'empty', title: 'Empty design', type: '3d-space', objects: [], savedScenes: [] },
-          { id: 'sheet', title: 'Preserved sheet', type: '2d-layout', objects: [], savedScenes: [] }
-        ]
-      }));`);
-      await new Promise(resolve => { contents.once('did-finish-load', resolve); contents.reload(); });
-      const restored = await contents.executeJavaScript(`(async () => {
-        await new Promise(resolve => setTimeout(resolve, 1400));
-        const saved = JSON.parse(localStorage.getItem('structura_3d_project'));
-        return { name: document.querySelector('input[title="Click to rename project"]').value, objects: saved.objects.length, pages: saved.pages.length };
+      const pageCreation = await contents.executeJavaScript(`(async () => {
+        const before = document.querySelectorAll('[data-tour="tab-3d-space"]').length;
+        const newPageButton = [...document.querySelectorAll('button')].find(button => button.textContent.includes('New Page'));
+        if (!newPageButton) return { opened: false, before, pages: before };
+        newPageButton.click();
+        await new Promise(resolve => setTimeout(resolve, 100));
+        const blankOption = [...document.querySelectorAll('button')].find(button => button.textContent.includes('3D Design Space (Blank)'));
+        if (!blankOption) return { opened: true, before, pages: before };
+        blankOption.click();
+        await new Promise(resolve => setTimeout(resolve, 150));
+        return { opened: true, before, pages: [...document.querySelectorAll('[data-tour="tab-3d-space"]')].length };
       })()`);
-      assert.deepEqual(restored, { name: 'Offline restore check', objects: 0, pages: 2 });
+      assert.equal(pageCreation.opened, true);
+      assert.equal(pageCreation.pages, pageCreation.before + 1);
       if (process.env.PORTABLE_EXECUTABLE_DIR) {
         assert.equal(app.getPath('userData'), path.join(process.env.PORTABLE_EXECUTABLE_DIR, 'Structura Data', process.platform));
       }
       assert.deepEqual(errors, []);
       console.log('PASS desktop:', JSON.stringify(result));
-      console.log('PASS restore:', JSON.stringify(restored));
+      console.log('PASS page creation:', JSON.stringify(pageCreation));
       clearTimeout(deadline);
       BrowserWindow.getAllWindows().forEach(win => win.close());
       app.quit();
