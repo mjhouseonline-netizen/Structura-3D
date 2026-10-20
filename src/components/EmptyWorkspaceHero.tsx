@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sparkles, Pencil, Home, X, ArrowRight } from 'lucide-react';
 import { useModelStore, modelActions } from '../state/useModelStore';
+import { isOfflineDesktop } from '../offline';
 
 export const EmptyWorkspaceHero: React.FC = () => {
   const { objects, isInteractiveTutorialActive, dismissEmptyWorkspacePrompt, presentationMode } =
@@ -105,7 +106,7 @@ export const EmptyWorkspaceHero: React.FC = () => {
           </button>
 
           {/* Choice 3: Create With AI */}
-          <button
+          {!isOfflineDesktop && <button
             onClick={handleCreateWithAi}
             className="w-full p-3 rounded-xl bg-slate-950/60 hover:bg-slate-800/80 border border-slate-800 text-left flex items-center justify-between group transition-all"
           >
@@ -123,7 +124,7 @@ export const EmptyWorkspaceHero: React.FC = () => {
               </div>
             </div>
             <ArrowRight size={15} className="text-slate-500 group-hover:text-slate-300 group-hover:translate-x-1 transition-transform" />
-          </button>
+          </button>}
         </div>
       </div>
     </div>

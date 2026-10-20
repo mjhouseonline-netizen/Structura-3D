@@ -189,6 +189,7 @@ export const ThreeViewport: React.FC = () => {
     for (const obj of objects) {
       if (!obj.visible) continue;
       const meshGroup = buildProceduralMesh(obj);
+      meshGroup.userData.objectId = obj.id;
       meshGroup.position.set(obj.position.x, obj.position.y, obj.position.z);
       meshGroup.rotation.set(obj.rotation.x, obj.rotation.y, obj.rotation.z);
       meshGroup.scale.set(obj.scale.x, obj.scale.y, obj.scale.z);
@@ -294,7 +295,7 @@ export const ThreeViewport: React.FC = () => {
 
       const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
-      return calculateSnapPoint({
+      const snap = calculateSnapPoint({
         pointerScreen: { x: e.clientX, y: e.clientY },
         raycaster,
         camera: cameraRef.current,
@@ -306,6 +307,26 @@ export const ThreeViewport: React.FC = () => {
         enableGeometrySnap,
         enableAxisSnap,
       });
+      // Use the actual rendered mesh for reliable selection. Snap heuristics are
+      // useful for drawing, but clicking an object's middle must always identify it.
+      if (objectsGroupRef.current) {
+        const hit = raycaster.intersectObjects(objectsGroupRef.current.children, true)[0];
+        if (hit) {
+          let node: THREE.Object3D | null = hit.object;
+          while (node && !node.userData.objectId) node = node.parent;
+          if (node?.userData.objectId) {
+            return {
+              ...snap,
+              point: { x: hit.point.x, y: hit.point.y, z: hit.point.z },
+              targetId: node.userData.objectId as string,
+              type: 'face',
+              label: 'Object',
+              color: '#38bdf8',
+            };
+          }
+        }
+      }
+      return snap;
     },
     [objects, gridStepMm, enableGridSnap, enableGeometrySnap, enableAxisSnap]
   );
@@ -509,6 +530,7 @@ export const ThreeViewport: React.FC = () => {
     // Push/Pull Extrusion Tool
     if (activeTool === 'pushpull') {
       if (snap.targetId) {
+        modelActions.selectObject(snap.targetId);
         pushPullTargetRef.current = {
           objectId: snap.targetId,
           startY: e.clientY,
@@ -519,9 +541,11 @@ export const ThreeViewport: React.FC = () => {
 
     // Move Tool Start
     if (activeTool === 'move') {
-      if (selectedObjectIds.length > 0) {
-        const obj = objects.find((o) => o.id === selectedObjectIds[0]);
+      const targetId = snap.targetId || selectedObjectIds[0];
+      if (targetId) {
+        const obj = objects.find((o) => o.id === targetId);
         if (obj) {
+          if (!selectedObjectIds.includes(obj.id)) modelActions.selectObject(obj.id);
           moveStartRef.current = {
             objectId: obj.id,
             startPos: { ...obj.position },

@@ -38,11 +38,12 @@ export const PageTabBar: React.FC = () => {
   return (
     <div className="h-8.5 bg-slate-950 border-b border-slate-800 px-3 flex items-center justify-between select-none z-20 text-xs">
       {/* Scrollable Page Tabs */}
-      <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
+      <div className="flex items-center gap-1 no-scrollbar py-0.5">
         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mr-1 hidden sm:inline">
           Pages:
         </span>
 
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5 min-w-0">
         {pages.map((page) => {
           const isActive = page.id === activePageId;
           const is2D = page.type === '2d-layout';
@@ -108,7 +109,7 @@ export const PageTabBar: React.FC = () => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    modelActions.deletePage(page.id);
+                    if (window.confirm(`Delete the page "${page.title}"?`)) modelActions.deletePage(page.id);
                   }}
                   className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-red-500/20 text-slate-400 hover:text-red-300 transition-opacity"
                   title="Delete Page"
@@ -143,7 +144,7 @@ export const PageTabBar: React.FC = () => {
                   {pages.length > 1 && (
                     <button
                       onClick={() => {
-                        modelActions.deletePage(page.id);
+                        if (window.confirm(`Delete the page "${page.title}"?`)) modelActions.deletePage(page.id);
                         setPageMenuOpenId(null);
                       }}
                       className="w-full text-left px-3 py-1.5 hover:bg-red-500/20 text-red-400 flex items-center gap-2"
@@ -157,6 +158,7 @@ export const PageTabBar: React.FC = () => {
             </div>
           );
         })}
+        </div>
 
         {/* "+ New Page" Button with Dropdown Modal */}
         <div className="relative">
@@ -171,10 +173,7 @@ export const PageTabBar: React.FC = () => {
           </button>
 
           {isNewPageMenuOpen && (
-            <div
-              className="absolute left-0 mt-1 w-64 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 text-xs space-y-1"
-              onMouseLeave={() => setIsNewPageMenuOpen(false)}
-            >
+            <div className="absolute left-0 mt-1 w-64 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 text-xs space-y-1">
               <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 Create New Page / Sheet
               </div>

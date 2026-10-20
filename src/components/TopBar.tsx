@@ -23,7 +23,8 @@ import {
   Keyboard,
   Home,
 } from 'lucide-react';
-import { useModelStore, modelActions } from '../state/useModelStore';
+import { useModelStore, modelActions, serializeProject } from '../state/useModelStore';
+import { isOfflineDesktop } from '../offline';
 
 export const TopBar: React.FC = () => {
   const {
@@ -48,12 +49,7 @@ export const TopBar: React.FC = () => {
 
   const handleExportJson = () => {
     const dataStr = JSON.stringify(
-      {
-        project: useModelStore.getState().project,
-        objects: useModelStore.getState().objects,
-        savedScenes: useModelStore.getState().savedScenes,
-        tags: useModelStore.getState().tags,
-      },
+      serializeProject(),
       null,
       2
     );
@@ -109,6 +105,7 @@ export const TopBar: React.FC = () => {
           </div>
           <span className="font-semibold text-white tracking-tight hidden sm:inline">
             Structura<span className="text-sky-400">3D</span>
+            {isOfflineDesktop && <span className="ml-2 text-xs text-emerald-400">Offline</span>}
           </span>
         </div>
 
@@ -146,11 +143,14 @@ export const TopBar: React.FC = () => {
       <div className="flex items-center gap-1">
         <div className="hidden md:flex items-center gap-1">
           <button
-            onClick={() => modelActions.resetScene()}
+            onClick={() => {
+              if (window.confirm('Start a new blank project? Export the current project first if you want a separate backup.')) modelActions.resetScene();
+            }}
             title="New Project (Blank)"
             className="p-1.5 rounded hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
           >
             <Plus size={18} />
+            <span className="hidden lg:inline text-xs font-medium">New</span>
           </button>
 
           <button
@@ -159,6 +159,7 @@ export const TopBar: React.FC = () => {
             className="p-1.5 rounded hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
           >
             <FolderOpen size={18} />
+            <span className="hidden lg:inline text-xs font-medium">Open</span>
           </button>
           <input
             ref={fileInputRef}
@@ -175,6 +176,7 @@ export const TopBar: React.FC = () => {
             className="p-1.5 rounded hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
           >
             <Save size={18} />
+            <span className="hidden lg:inline text-xs font-medium">Save</span>
           </button>
 
           <div className="h-5 w-[1px] bg-slate-700/60 mx-1" />
@@ -213,7 +215,9 @@ export const TopBar: React.FC = () => {
           </button>
 
           <button
-            onClick={() => modelActions.deleteSelected()}
+            onClick={() => {
+              if (window.confirm(`Delete ${selectedObjectIds.length === 1 ? 'the selected object' : `${selectedObjectIds.length} selected objects`}?`)) modelActions.deleteSelected();
+            }}
             disabled={!hasSelection}
             title="Delete Selected (Del / Backspace)"
             className="p-1.5 rounded hover:bg-red-500/20 disabled:opacity-40 disabled:hover:bg-transparent text-slate-300 hover:text-red-400 transition-colors"
@@ -358,7 +362,6 @@ export const TopBar: React.FC = () => {
             {isHelpOpenMenu && (
               <div
                 className="absolute right-0 mt-1 w-56 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-1.5 z-50 text-xs text-slate-200 space-y-0.5"
-                onMouseLeave={() => setIsHelpOpenMenu(false)}
               >
                 <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                   Learning & Guidance
@@ -427,7 +430,6 @@ export const TopBar: React.FC = () => {
           {isMobileMenuOpen && (
             <div
               className="absolute right-0 mt-1 w-52 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 text-xs text-slate-200 space-y-1"
-              onMouseLeave={() => setIsMobileMenuOpen(false)}
             >
               <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 Menu & Settings
