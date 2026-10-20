@@ -143,11 +143,14 @@ export const TopBar: React.FC = () => {
       <div className="flex items-center gap-1">
         <div className="hidden md:flex items-center gap-1">
           <button
-            onClick={() => modelActions.resetScene()}
+            onClick={() => {
+              if (window.confirm('Start a new blank project? Export the current project first if you want a separate backup.')) modelActions.resetScene();
+            }}
             title="New Project (Blank)"
             className="p-1.5 rounded hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
           >
             <Plus size={18} />
+            <span className="hidden lg:inline text-xs font-medium">New</span>
           </button>
 
           <button
@@ -156,6 +159,7 @@ export const TopBar: React.FC = () => {
             className="p-1.5 rounded hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
           >
             <FolderOpen size={18} />
+            <span className="hidden lg:inline text-xs font-medium">Open</span>
           </button>
           <input
             ref={fileInputRef}
@@ -172,6 +176,7 @@ export const TopBar: React.FC = () => {
             className="p-1.5 rounded hover:bg-slate-800 text-slate-300 hover:text-white transition-colors"
           >
             <Save size={18} />
+            <span className="hidden lg:inline text-xs font-medium">Save</span>
           </button>
 
           <div className="h-5 w-[1px] bg-slate-700/60 mx-1" />
@@ -210,7 +215,9 @@ export const TopBar: React.FC = () => {
           </button>
 
           <button
-            onClick={() => modelActions.deleteSelected()}
+            onClick={() => {
+              if (window.confirm(`Delete ${selectedObjectIds.length === 1 ? 'the selected object' : `${selectedObjectIds.length} selected objects`}?`)) modelActions.deleteSelected();
+            }}
             disabled={!hasSelection}
             title="Delete Selected (Del / Backspace)"
             className="p-1.5 rounded hover:bg-red-500/20 disabled:opacity-40 disabled:hover:bg-transparent text-slate-300 hover:text-red-400 transition-colors"

@@ -43,6 +43,7 @@ export const PageTabBar: React.FC = () => {
           Pages:
         </span>
 
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5 min-w-0">
         {pages.map((page) => {
           const isActive = page.id === activePageId;
           const is2D = page.type === '2d-layout';
@@ -108,7 +109,7 @@ export const PageTabBar: React.FC = () => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    modelActions.deletePage(page.id);
+                    if (window.confirm(`Delete the page "${page.title}"?`)) modelActions.deletePage(page.id);
                   }}
                   className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-red-500/20 text-slate-400 hover:text-red-300 transition-opacity"
                   title="Delete Page"
@@ -143,7 +144,7 @@ export const PageTabBar: React.FC = () => {
                   {pages.length > 1 && (
                     <button
                       onClick={() => {
-                        modelActions.deletePage(page.id);
+                        if (window.confirm(`Delete the page "${page.title}"?`)) modelActions.deletePage(page.id);
                         setPageMenuOpenId(null);
                       }}
                       className="w-full text-left px-3 py-1.5 hover:bg-red-500/20 text-red-400 flex items-center gap-2"
@@ -157,6 +158,7 @@ export const PageTabBar: React.FC = () => {
             </div>
           );
         })}
+        </div>
 
         {/* "+ New Page" Button with Dropdown Modal */}
         <div className="relative">

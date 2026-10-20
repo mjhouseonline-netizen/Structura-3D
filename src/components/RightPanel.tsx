@@ -435,7 +435,9 @@ export const RightPanel: React.FC = () => {
                     <span>Duplicate</span>
                   </button>
                   <button
-                    onClick={() => modelActions.deleteSelected()}
+                    onClick={() => {
+                      if (window.confirm(`Delete ${selectedObjectIds.length === 1 ? 'the selected object' : `${selectedObjectIds.length} selected objects`}?`)) modelActions.deleteSelected();
+                    }}
                     className="py-1.5 px-3 rounded bg-red-500/20 hover:bg-red-500/30 text-red-300 font-medium flex items-center justify-center gap-1.5"
                   >
                     <Trash2 size={13} />

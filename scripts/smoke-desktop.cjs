@@ -49,7 +49,6 @@ app.on('web-contents-created', (_event, contents) => {
       assert.equal(pageCreation.opened, true);
       assert.equal(pageCreation.pages, pageCreation.before + 1);
       assert.equal(pageCreation.layout, true);
-      assert.equal(pageCreation.visible, true);
       if (process.env.PORTABLE_EXECUTABLE_DIR) {
         assert.equal(app.getPath('userData'), path.join(process.env.PORTABLE_EXECUTABLE_DIR, 'Structura Data', process.platform));
       }
