@@ -38,7 +38,7 @@ export const PageTabBar: React.FC = () => {
   return (
     <div className="h-8.5 bg-slate-950 border-b border-slate-800 px-3 flex items-center justify-between select-none z-20 text-xs">
       {/* Scrollable Page Tabs */}
-      <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
+      <div className="flex items-center gap-1 no-scrollbar py-0.5">
         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mr-1 hidden sm:inline">
           Pages:
         </span>

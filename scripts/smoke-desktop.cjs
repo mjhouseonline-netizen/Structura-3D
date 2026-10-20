@@ -37,13 +37,19 @@ app.on('web-contents-created', (_event, contents) => {
         newPageButton.click();
         await new Promise(resolve => setTimeout(resolve, 100));
         const blankOption = [...document.querySelectorAll('button')].find(button => button.textContent.includes('3D Design Space (Blank)'));
-        if (!blankOption) return { opened: true, before, pages: before };
+        const layoutOption = [...document.querySelectorAll('button')].find(button => button.textContent.includes('2D LayOut Blueprint Sheet'));
+        const menu = layoutOption?.closest('div.absolute');
+        const menuRect = menu?.getBoundingClientRect();
+        const visible = !!menuRect && menuRect.bottom <= window.innerHeight && menuRect.right <= window.innerWidth;
+        if (!blankOption || !layoutOption) return { opened: true, before, pages: before, layout: !!layoutOption, visible };
         blankOption.click();
         await new Promise(resolve => setTimeout(resolve, 150));
-        return { opened: true, before, pages: [...document.querySelectorAll('[data-tour="tab-3d-space"]')].length };
+        return { opened: true, before, pages: [...document.querySelectorAll('[data-tour="tab-3d-space"]')].length, layout: true, visible };
       })()`);
       assert.equal(pageCreation.opened, true);
       assert.equal(pageCreation.pages, pageCreation.before + 1);
+      assert.equal(pageCreation.layout, true);
+      assert.equal(pageCreation.visible, true);
       if (process.env.PORTABLE_EXECUTABLE_DIR) {
         assert.equal(app.getPath('userData'), path.join(process.env.PORTABLE_EXECUTABLE_DIR, 'Structura Data', process.platform));
       }
