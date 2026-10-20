@@ -30,8 +30,6 @@ app.on('web-contents-created', (_event, contents) => {
       assert.equal(result.webgl, true);
       assert.equal(result.networkBlocked, true);
       assert.equal(result.nodeAccess, 'undefined');
-      const shot = await contents.capturePage();
-      fs.writeFileSync('test-output/desktop.png', shot.toPNG());
       const pageCreation = await contents.executeJavaScript(`(async () => {
         const before = document.querySelectorAll('[data-tour="tab-3d-space"]').length;
         const newPageButton = [...document.querySelectorAll('button')].find(button => button.textContent.includes('New Page'));

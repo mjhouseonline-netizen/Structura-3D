@@ -24,6 +24,7 @@ try {
   modelActions.loadProject(JSON.parse(JSON.stringify(snapshot)));
   assert.equal(getState().pages.length, 2);
   assert.equal(getState().activePageId, snapshot.activePageId);
+  assert.deepEqual(getState().objects, snapshot.pages.find(page => page.id === snapshot.activePageId).objects);
   modelActions.switchPage(firstPage);
   assert.equal(getState().objects.length, 0);
   setState({ project: { ...getState().project, name: 'Renamed offline' } });

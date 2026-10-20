@@ -1287,17 +1287,19 @@ export const modelActions = {
         const pages: DesignPage[] = Array.isArray(jsonData.pages) && jsonData.pages.length
           ? jsonData.pages : [{ id: 'imported-page', title: 'Design Space', type: '3d-space', objects: jsonData.objects, savedScenes: jsonData.savedScenes || [], createdAt: new Date().toISOString() }];
         const activePageId = pages.some(p => p.id === jsonData.activePageId) ? jsonData.activePageId : pages[0].id;
+        const activePage = pages.find(page => page.id === activePageId) || pages[0];
+        const activeObjects = Array.isArray(activePage.objects) ? activePage.objects : jsonData.objects;
         setState({
           pages,
           activePageId,
           project: jsonData.project || currentState.project,
-          objects: jsonData.objects,
+          objects: activeObjects,
           savedScenes: jsonData.savedScenes || currentState.savedScenes,
           tags: jsonData.tags || DEFAULT_TAGS,
           selectedObjectIds: [],
           selectedFaceId: null,
         });
-        pushHistory('Imported project', jsonData.objects);
+        pushHistory('Imported project', activeObjects);
       }
     } catch (e) {
       console.error('Failed to parse project JSON:', e);

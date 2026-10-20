@@ -355,7 +355,6 @@ export const TopBar: React.FC = () => {
             {isHelpOpenMenu && (
               <div
                 className="absolute right-0 mt-1 w-56 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-1.5 z-50 text-xs text-slate-200 space-y-0.5"
-                onMouseLeave={() => setIsHelpOpenMenu(false)}
               >
                 <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                   Learning & Guidance
@@ -424,7 +423,6 @@ export const TopBar: React.FC = () => {
           {isMobileMenuOpen && (
             <div
               className="absolute right-0 mt-1 w-52 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-2 z-50 text-xs text-slate-200 space-y-1"
-              onMouseLeave={() => setIsMobileMenuOpen(false)}
             >
               <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 Menu & Settings
